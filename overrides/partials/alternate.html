@@ -1,0 +1,38 @@
+{#-
+  AI Translate docs — language-switcher override.
+
+  Material's stock ``alternate.html`` renders the dropdown via
+  ``{{ alt.link | url }}``.  Combined with mkdocs-static-i18n's
+  ``extra_alternate`` overrides in ``on_page_context``, the URL filter
+  emits a bare absolute path on the homepage (``/fr/`` instead of
+  ``/ai-translate/fr/``), so clicking the switcher from the deployed
+  site lands on a 404 at ``https://cadic2603.github.io/fr/``.
+
+  Workaround: build the href from ``config.site_url`` directly so the
+  ``/ai-translate/`` site path prefix is always preserved.  ``alt.link``
+  is the page-relative URL ("fr/", "fr/getting-started/installation/",
+  …); concatenating with the trailing-slash site_url yields the right
+  absolute URL on every page.
+
+  Mirror the rest of the stock partial verbatim so theme upgrades that
+  don't touch this template flow through unchanged.
+-#}
+<div class="md-header__option">
+  <div class="md-select">
+    {% set icon = config.theme.icon.alternate or "material/translate" %}
+    <button class="md-header__button md-icon" aria-label="{{ lang.t('select.language') }}">
+      {% include ".icons/" ~ icon ~ ".svg" %}
+    </button>
+    <div class="md-select__inner">
+      <ul class="md-select__list">
+        {% for alt in config.extra.alternate %}
+          <li class="md-select__item">
+            <a href="{{ config.site_url }}{{ alt.link | trim('/') }}{% if alt.link | trim('/') %}/{% endif %}" hreflang="{{ alt.lang }}" class="md-select__link">
+              {{ alt.name }}
+            </a>
+          </li>
+        {% endfor %}
+      </ul>
+    </div>
+  </div>
+</div>

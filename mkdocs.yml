@@ -1,0 +1,893 @@
+# MkDocs configuration — auto-generated API reference
+# powered by mkdocstrings + Material for MkDocs.
+#
+# Build:    uv run mkdocs build      (output → site/)
+# Preview:  uv run mkdocs serve      (http://127.0.0.1:8000)
+
+site_name: AI Translate
+site_description: A cross-platform desktop translator with CLI and MCP entry points.
+# ``site_url`` is the canonical deployed URL of the *docs site* (drives
+# canonical <link> tags, sitemap entries, and the base path Material
+# uses for absolute links like the language switcher).  It must NOT be
+# the GitHub repo URL — that path (``/cadic2603/ai-translate/``) gets
+# prefixed onto every link and 404s.  GitHub Pages convention is
+# ``https://<user>.github.io/<repo>/``.
+site_url: https://cadic2603.github.io/ai-translate/
+repo_url: https://github.com/cadic2603/ai-translate
+repo_name: cadic2603/ai-translate
+edit_uri: ""
+
+# Material theme — JSDoc-style sidebar + content layout, search, dark mode.
+theme:
+  name: material
+  # ``custom_dir`` is needed so we can ship language-pack shims for the
+  # i18n plugin's ``en-US`` / ``en-UK`` locales (see
+  # ``overrides/partials/languages/`` — Material only ships ``en.html``,
+  # the shims re-export it under each BCP-47 code).
+  custom_dir: overrides
+  logo: assets/logo.svg
+  favicon: assets/favicon.png
+  features:
+    # ``navigation.instant`` (XHR page swaps) is incompatible with the
+    # i18n plugin's contextual language-switcher links — the switcher
+    # would always send users back to the home page in the alternate
+    # language instead of the equivalent localized page.  Keep it off
+    # so the switcher resolves to the matching translated URL.
+    - navigation.tracking      # URL hash updates as you scroll.
+    - navigation.tabs          # Top-level groups become tabs.
+    - navigation.sections      # Render top-level items as section headers.
+    - navigation.indexes       # Folder index pages live at the folder URL.
+    - navigation.top           # Back-to-top button.
+    - search.suggest
+    - search.highlight
+    - content.code.copy
+    - content.code.annotate
+    - toc.follow               # ToC scrolls to follow the active heading.
+  # ``primary: custom`` defers the actual color to ``docs/stylesheets/extra.css``,
+  # which mirrors the desktop app's palette (#3e79f7) so the docs and the app
+  # read as the same product.  Both schemes use the same CSS variables.
+  palette:
+    - media: "(prefers-color-scheme: light)"
+      scheme: default
+      primary: custom
+      accent: custom
+      toggle:
+        icon: material/brightness-7
+        name: Switch to dark mode
+    - media: "(prefers-color-scheme: dark)"
+      scheme: slate
+      primary: custom
+      accent: custom
+      toggle:
+        icon: material/brightness-4
+        name: Switch to light mode
+  font:
+    text: Inter
+    code: JetBrains Mono
+
+# Site-wide CSS overrides — keep this list small; per-page styling
+# belongs in the page itself via ``attr_list`` or admonitions.
+extra_css:
+  - stylesheets/extra.css
+
+# Markdown extensions — code highlighting, admonitions, tabbed sections.
+markdown_extensions:
+  - admonition
+  - attr_list
+  - md_in_html
+  - tables
+  - toc:
+      permalink: true
+      toc_depth: 3
+  - pymdownx.highlight:
+      anchor_linenums: true
+      line_spans: __span
+      pygments_lang_class: true
+  - pymdownx.inlinehilite
+  - pymdownx.snippets
+  - pymdownx.superfences
+  - pymdownx.details
+  - pymdownx.tabbed:
+      alternate_style: true
+  # ``pymdownx.emoji`` + Material's twemoji index unlocks the
+  # ``:material-foo:`` and ``:octicons-bar:`` shortcodes used by the
+  # landing-page grid cards.  Without this, those shortcodes render as
+  # literal text in the built site.
+  - pymdownx.emoji:
+      emoji_index: !!python/name:material.extensions.emoji.twemoji
+      emoji_generator: !!python/name:material.extensions.emoji.to_svg
+
+plugins:
+  - search
+  # mkdocs-autorefs is a sub-dependency of mkdocstrings.  Enable
+  # ``resolve_closest`` so that when the same Python symbol gets
+  # rendered under both ``/`` (English) and ``/vi/`` (Vietnamese) by
+  # the i18n plugin, autorefs picks the page closest to the linker
+  # rather than warning "Multiple primary URLs found" on every cross-
+  # reference.  The Developer Reference is identical in both locales
+  # (auto-generated from English docstrings), so any pick is correct.
+  - autorefs:
+      resolve_closest: true
+  # mkdocs-static-i18n: per-page translations.  Pages with a
+  # ``<name>.<lang>.md`` suffix (e.g. ``index.vi.md``) get rendered
+  # at ``/<lang>/<name>/`` and a language switcher appears in the
+  # header.  Untranslated pages fall back to the default-language
+  # version so partial translation coverage is OK.
+  - i18n:
+      docs_structure: suffix
+      languages:
+        # ``en-us`` is the default locale and serves at site root (``/``).
+        # The desktop app ships separate ``en-US.json`` and ``en-UK.json``
+        # UI translations, so the docs mirror that split: file ``foo.md``
+        # is the en-US version, ``foo.en-uk.md`` overrides for British
+        # English.  Without an UK override, en-uk falls back to en-us so
+        # partial translation coverage is OK.
+        # Material only ships ``en.html`` as a UI language pack and the
+        # i18n plugin force-overwrites ``theme.language`` to the locale
+        # code on every build (mkdocs_static_i18n/reconfigure.py).  Our
+        # workaround: ``overrides/partials/languages/en-US.html`` and
+        # ``en-UK.html`` re-export Material's ``en`` pack under each
+        # BCP-47 code so the build resolves cleanly.
+        - locale: en-US
+          default: true
+          name: English (US)
+          build: true
+        - locale: en-UK
+          name: English (UK)
+          build: true
+        # European + global locales — nav labels translated; per-page
+        # Markdown bodies fall back to en-US until translated
+        # ``<page>.<lang>.md`` files are added.
+        - locale: fr
+          name: Français
+          build: true
+          nav_translations:
+            Home: Accueil
+            Getting Started: Premiers pas
+            Installation: Installation
+            Your first translation: Votre première traduction
+            Features: Fonctionnalités
+            Translate Text: Traduire le texte
+            Translate Document: Traduire un document
+            Generate Subtitle (STT): Générer des sous-titres (STT)
+            Generate Voice (TTS): Générer la voix (TTS)
+            Video Dubbing: Doublage vidéo
+            Live Translation: Traduction en direct
+            Extract Text: Extraire le texte
+            Glossary: Glossaire
+            Setup Guides: Guides de configuration
+            LLM Providers: Fournisseurs LLM
+            OCR Engines: Moteurs OCR
+            ElevenLabs (TTS): ElevenLabs (TTS)
+            Soniox (STT): Soniox (STT)
+            Google Cloud: Google Cloud
+            FFmpeg: FFmpeg
+            LibreOffice: LibreOffice
+            System Audio Capture: Capture audio système
+            PortAudio (microphone): PortAudio (microphone)
+            Command Line: Ligne de commande
+            MCP Server: Serveur MCP
+            Troubleshooting: Dépannage
+            FAQ: FAQ
+            Developer Reference: Référence développeur
+        - locale: es
+          name: Español
+          build: true
+          nav_translations:
+            Home: Inicio
+            Getting Started: Primeros pasos
+            Installation: Instalación
+            Your first translation: Su primera traducción
+            Features: Funciones
+            Translate Text: Traducir texto
+            Translate Document: Traducir documento
+            Generate Subtitle (STT): Generar subtítulos (STT)
+            Generate Voice (TTS): Generar voz (TTS)
+            Video Dubbing: Doblaje de vídeo
+            Live Translation: Traducción en vivo
+            Extract Text: Extraer texto
+            Glossary: Glosario
+            Setup Guides: Guías de configuración
+            LLM Providers: Proveedores LLM
+            OCR Engines: Motores OCR
+            ElevenLabs (TTS): ElevenLabs (TTS)
+            Soniox (STT): Soniox (STT)
+            Google Cloud: Google Cloud
+            FFmpeg: FFmpeg
+            LibreOffice: LibreOffice
+            System Audio Capture: Captura de audio del sistema
+            PortAudio (microphone): PortAudio (micrófono)
+            Command Line: Línea de comandos
+            MCP Server: Servidor MCP
+            Troubleshooting: Resolución de problemas
+            FAQ: Preguntas frecuentes
+            Developer Reference: Referencia para desarrolladores
+        - locale: de
+          name: Deutsch
+          build: true
+          nav_translations:
+            Home: Startseite
+            Getting Started: Erste Schritte
+            Installation: Installation
+            Your first translation: Ihre erste Übersetzung
+            Features: Funktionen
+            Translate Text: Text übersetzen
+            Translate Document: Dokument übersetzen
+            Generate Subtitle (STT): Untertitel erzeugen (STT)
+            Generate Voice (TTS): Stimme erzeugen (TTS)
+            Video Dubbing: Video-Synchronisation
+            Live Translation: Live-Übersetzung
+            Extract Text: Text extrahieren
+            Glossary: Glossar
+            Setup Guides: Einrichtungsanleitungen
+            LLM Providers: LLM-Anbieter
+            OCR Engines: OCR-Engines
+            ElevenLabs (TTS): ElevenLabs (TTS)
+            Soniox (STT): Soniox (STT)
+            Google Cloud: Google Cloud
+            FFmpeg: FFmpeg
+            LibreOffice: LibreOffice
+            System Audio Capture: Systemaudio-Aufnahme
+            PortAudio (microphone): PortAudio (Mikrofon)
+            Command Line: Befehlszeile
+            MCP Server: MCP-Server
+            Troubleshooting: Fehlerbehebung
+            FAQ: FAQ
+            Developer Reference: Entwicklerreferenz
+        - locale: it
+          name: Italiano
+          build: true
+          nav_translations:
+            Home: Home
+            Getting Started: Per iniziare
+            Installation: Installazione
+            Your first translation: La tua prima traduzione
+            Features: Funzionalità
+            Translate Text: Traduci testo
+            Translate Document: Traduci documento
+            Generate Subtitle (STT): Genera sottotitoli (STT)
+            Generate Voice (TTS): Genera voce (TTS)
+            Video Dubbing: Doppiaggio video
+            Live Translation: Traduzione in diretta
+            Extract Text: Estrai testo
+            Glossary: Glossario
+            Setup Guides: Guide di configurazione
+            LLM Providers: Provider LLM
+            OCR Engines: Motori OCR
+            ElevenLabs (TTS): ElevenLabs (TTS)
+            Soniox (STT): Soniox (STT)
+            Google Cloud: Google Cloud
+            FFmpeg: FFmpeg
+            LibreOffice: LibreOffice
+            System Audio Capture: Acquisizione audio di sistema
+            PortAudio (microphone): PortAudio (microfono)
+            Command Line: Riga di comando
+            MCP Server: Server MCP
+            Troubleshooting: Risoluzione dei problemi
+            FAQ: FAQ
+            Developer Reference: Riferimento per sviluppatori
+        - locale: pl
+          name: Polski
+          build: true
+          nav_translations:
+            Home: Strona główna
+            Getting Started: Pierwsze kroki
+            Installation: Instalacja
+            Your first translation: Twoje pierwsze tłumaczenie
+            Features: Funkcje
+            Translate Text: Tłumacz tekst
+            Translate Document: Tłumacz dokument
+            Generate Subtitle (STT): Generuj napisy (STT)
+            Generate Voice (TTS): Generuj głos (TTS)
+            Video Dubbing: Dubbing wideo
+            Live Translation: Tłumaczenie na żywo
+            Extract Text: Wyodrębnij tekst
+            Glossary: Glosariusz
+            Setup Guides: Przewodniki konfiguracji
+            LLM Providers: Dostawcy LLM
+            OCR Engines: Silniki OCR
+            ElevenLabs (TTS): ElevenLabs (TTS)
+            Soniox (STT): Soniox (STT)
+            Google Cloud: Google Cloud
+            FFmpeg: FFmpeg
+            LibreOffice: LibreOffice
+            System Audio Capture: Przechwytywanie dźwięku systemowego
+            PortAudio (microphone): PortAudio (mikrofon)
+            Command Line: Wiersz poleceń
+            MCP Server: Serwer MCP
+            Troubleshooting: Rozwiązywanie problemów
+            FAQ: FAQ
+            Developer Reference: Dokumentacja dla deweloperów
+        - locale: pt-BR
+          name: Português (Brasil)
+          build: true
+          nav_translations:
+            Home: Início
+            Getting Started: Primeiros passos
+            Installation: Instalação
+            Your first translation: Sua primeira tradução
+            Features: Recursos
+            Translate Text: Traduzir texto
+            Translate Document: Traduzir documento
+            Generate Subtitle (STT): Gerar legenda (STT)
+            Generate Voice (TTS): Gerar voz (TTS)
+            Video Dubbing: Dublagem de vídeo
+            Live Translation: Tradução ao vivo
+            Extract Text: Extrair texto
+            Glossary: Glossário
+            Setup Guides: Guias de configuração
+            LLM Providers: Provedores LLM
+            OCR Engines: Motores OCR
+            ElevenLabs (TTS): ElevenLabs (TTS)
+            Soniox (STT): Soniox (STT)
+            Google Cloud: Google Cloud
+            FFmpeg: FFmpeg
+            LibreOffice: LibreOffice
+            System Audio Capture: Captura de áudio do sistema
+            PortAudio (microphone): PortAudio (microfone)
+            Command Line: Linha de comando
+            MCP Server: Servidor MCP
+            Troubleshooting: Solução de problemas
+            FAQ: Perguntas frequentes
+            Developer Reference: Referência para desenvolvedores
+        - locale: pt-PT
+          name: Português (Portugal)
+          build: true
+          nav_translations:
+            Home: Início
+            Getting Started: Começar
+            Installation: Instalação
+            Your first translation: A sua primeira tradução
+            Features: Funcionalidades
+            Translate Text: Traduzir texto
+            Translate Document: Traduzir documento
+            Generate Subtitle (STT): Gerar legendas (STT)
+            Generate Voice (TTS): Gerar voz (TTS)
+            Video Dubbing: Dobragem de vídeo
+            Live Translation: Tradução ao vivo
+            Extract Text: Extrair texto
+            Glossary: Glossário
+            Setup Guides: Guias de configuração
+            LLM Providers: Fornecedores LLM
+            OCR Engines: Motores OCR
+            ElevenLabs (TTS): ElevenLabs (TTS)
+            Soniox (STT): Soniox (STT)
+            Google Cloud: Google Cloud
+            FFmpeg: FFmpeg
+            LibreOffice: LibreOffice
+            System Audio Capture: Captura de áudio do sistema
+            PortAudio (microphone): PortAudio (microfone)
+            Command Line: Linha de comandos
+            MCP Server: Servidor MCP
+            Troubleshooting: Resolução de problemas
+            FAQ: Perguntas frequentes
+            Developer Reference: Referência para programadores
+        - locale: ru
+          name: Русский
+          build: true
+          nav_translations:
+            Home: Главная
+            Getting Started: Начало работы
+            Installation: Установка
+            Your first translation: Ваш первый перевод
+            Features: Возможности
+            Translate Text: Перевод текста
+            Translate Document: Перевод документов
+            Generate Subtitle (STT): Создание субтитров (STT)
+            Generate Voice (TTS): Создание голоса (TTS)
+            Video Dubbing: Дубляж видео
+            Live Translation: Живой перевод
+            Extract Text: Извлечение текста
+            Glossary: Глоссарий
+            Setup Guides: Руководства по настройке
+            LLM Providers: Провайдеры LLM
+            OCR Engines: Движки OCR
+            ElevenLabs (TTS): ElevenLabs (TTS)
+            Soniox (STT): Soniox (STT)
+            Google Cloud: Google Cloud
+            FFmpeg: FFmpeg
+            LibreOffice: LibreOffice
+            System Audio Capture: Захват системного звука
+            PortAudio (microphone): PortAudio (микрофон)
+            Command Line: Командная строка
+            MCP Server: Сервер MCP
+            Troubleshooting: Устранение неполадок
+            FAQ: Часто задаваемые вопросы
+            Developer Reference: Справочник для разработчиков
+        # ``ar`` is the only RTL locale in the docs build.  Material's
+        # ``ar.html`` language pack flips ``<html dir>`` to ``rtl``
+        # automatically; no extra config needed.  The desktop app's RTL
+        # output pipeline (PDF / DOCX / EPUB injection in
+        # text_processor.py) is unrelated to docs-site rendering.
+        - locale: ar
+          name: العربية
+          build: true
+          nav_translations:
+            Home: الرئيسية
+            Getting Started: البدء
+            Installation: التثبيت
+            Your first translation: ترجمتك الأولى
+            Features: الميزات
+            Translate Text: ترجمة النص
+            Translate Document: ترجمة المستند
+            Generate Subtitle (STT): إنشاء الترجمة (STT)
+            Generate Voice (TTS): إنشاء الصوت (TTS)
+            Video Dubbing: دبلجة الفيديو
+            Live Translation: الترجمة الفورية
+            Extract Text: استخراج النص
+            Glossary: المسرد
+            Setup Guides: أدلة الإعداد
+            LLM Providers: مزودو LLM
+            OCR Engines: محركات OCR
+            ElevenLabs (TTS): ElevenLabs (TTS)
+            Soniox (STT): Soniox (STT)
+            Google Cloud: Google Cloud
+            FFmpeg: FFmpeg
+            LibreOffice: LibreOffice
+            System Audio Capture: التقاط صوت النظام
+            PortAudio (microphone): بورت أوديو (ميكروفون)
+            Command Line: سطر الأوامر
+            MCP Server: خادم MCP
+            Troubleshooting: استكشاف الأخطاء وإصلاحها
+            FAQ: الأسئلة الشائعة
+            Developer Reference: مرجع المطورين
+        - locale: hi
+          name: हिन्दी
+          build: true
+          nav_translations:
+            Home: होम
+            Getting Started: शुरुआत करें
+            Installation: इंस्टॉलेशन
+            Your first translation: आपका पहला अनुवाद
+            Features: विशेषताएँ
+            Translate Text: टेक्स्ट अनुवाद
+            Translate Document: दस्तावेज़ अनुवाद
+            Generate Subtitle (STT): सबटाइटल बनाएँ (STT)
+            Generate Voice (TTS): आवाज़ बनाएँ (TTS)
+            Video Dubbing: वीडियो डबिंग
+            Live Translation: लाइव अनुवाद
+            Extract Text: टेक्स्ट निकालें
+            Glossary: शब्दावली
+            Setup Guides: सेटअप गाइड
+            LLM Providers: LLM प्रदाता
+            OCR Engines: OCR इंजन
+            ElevenLabs (TTS): ElevenLabs (TTS)
+            Soniox (STT): Soniox (STT)
+            Google Cloud: Google Cloud
+            FFmpeg: FFmpeg
+            LibreOffice: LibreOffice
+            System Audio Capture: सिस्टम ऑडियो कैप्चर
+            PortAudio (microphone): PortAudio (माइक्रोफ़ोन)
+            Command Line: कमांड लाइन
+            MCP Server: MCP सर्वर
+            Troubleshooting: समस्या निवारण
+            FAQ: अक्सर पूछे जाने वाले प्रश्न
+            Developer Reference: डेवलपर संदर्भ
+        - locale: id
+          name: Bahasa Indonesia
+          build: true
+          nav_translations:
+            Home: Beranda
+            Getting Started: Memulai
+            Installation: Pemasangan
+            Your first translation: Terjemahan Pertama Anda
+            Features: Fitur
+            Translate Text: Terjemahkan Teks
+            Translate Document: Terjemahkan Dokumen
+            Generate Subtitle (STT): Buat Subtitle (STT)
+            Generate Voice (TTS): Buat Suara (TTS)
+            Video Dubbing: Sulih Suara Video
+            Live Translation: Terjemahan Langsung
+            Extract Text: Ekstrak Teks
+            Glossary: Glosarium
+            Setup Guides: Panduan Pengaturan
+            LLM Providers: Penyedia LLM
+            OCR Engines: Mesin OCR
+            ElevenLabs (TTS): ElevenLabs (TTS)
+            Soniox (STT): Soniox (STT)
+            Google Cloud: Google Cloud
+            FFmpeg: FFmpeg
+            LibreOffice: LibreOffice
+            System Audio Capture: Pengambilan Audio Sistem
+            PortAudio (microphone): PortAudio (mikrofon)
+            Command Line: Baris Perintah
+            MCP Server: Server MCP
+            Troubleshooting: Pemecahan Masalah
+            FAQ: Tanya Jawab
+            Developer Reference: Referensi Pengembang
+        - locale: th
+          name: ไทย
+          build: true
+          nav_translations:
+            Home: หน้าแรก
+            Getting Started: เริ่มต้นใช้งาน
+            Installation: การติดตั้ง
+            Your first translation: การแปลครั้งแรก
+            Features: คุณสมบัติ
+            Translate Text: แปลข้อความ
+            Translate Document: แปลเอกสาร
+            Generate Subtitle (STT): สร้างคำบรรยาย (STT)
+            Generate Voice (TTS): สร้างเสียง (TTS)
+            Video Dubbing: พากย์เสียงวิดีโอ
+            Live Translation: แปลสด
+            Extract Text: ดึงข้อความ
+            Glossary: คำศัพท์
+            Setup Guides: คู่มือการตั้งค่า
+            LLM Providers: ผู้ให้บริการ LLM
+            OCR Engines: เอนจิน OCR
+            ElevenLabs (TTS): ElevenLabs (TTS)
+            Soniox (STT): Soniox (STT)
+            Google Cloud: Google Cloud
+            FFmpeg: FFmpeg
+            LibreOffice: LibreOffice
+            System Audio Capture: จับเสียงระบบ
+            PortAudio (microphone): PortAudio (ไมโครโฟน)
+            Command Line: บรรทัดคำสั่ง
+            MCP Server: เซิร์ฟเวอร์ MCP
+            Troubleshooting: การแก้ไขปัญหา
+            FAQ: คำถามที่พบบ่อย
+            Developer Reference: เอกสารสำหรับนักพัฒนา
+        - locale: tr
+          name: Türkçe
+          build: true
+          nav_translations:
+            Home: Ana sayfa
+            Getting Started: Başlarken
+            Installation: Kurulum
+            Your first translation: İlk çeviriniz
+            Features: Özellikler
+            Translate Text: Metin Çevir
+            Translate Document: Belge Çevir
+            Generate Subtitle (STT): Altyazı Oluştur (STT)
+            Generate Voice (TTS): Ses Oluştur (TTS)
+            Video Dubbing: Video Dublajı
+            Live Translation: Canlı Çeviri
+            Extract Text: Metin Çıkar
+            Glossary: Sözlük
+            Setup Guides: Kurulum Kılavuzları
+            LLM Providers: LLM Sağlayıcıları
+            OCR Engines: OCR Motorları
+            ElevenLabs (TTS): ElevenLabs (TTS)
+            Soniox (STT): Soniox (STT)
+            Google Cloud: Google Cloud
+            FFmpeg: FFmpeg
+            LibreOffice: LibreOffice
+            System Audio Capture: Sistem Sesi Yakalama
+            PortAudio (microphone): PortAudio (mikrofon)
+            Command Line: Komut Satırı
+            MCP Server: MCP Sunucusu
+            Troubleshooting: Sorun Giderme
+            FAQ: SSS
+            Developer Reference: Geliştirici Referansı
+        # CJK locales — nav labels translated; per-page Markdown
+        # bodies fall back to en-US until translated
+        # ``<page>.zh-CN.md`` / ``<page>.zh-TW.md`` / ``<page>.ja.md``
+        # / ``<page>.ko.md`` files are added.
+        #
+        # Chinese splits into two BCP-47 locales:
+        #   * ``zh-CN`` — Simplified Chinese (mainland China). Material
+        #     ships ``zh.html`` as the default Simplified pack; we
+        #     re-export it as ``zh-CN.html`` via the partial shim in
+        #     ``overrides/partials/languages/`` (same pattern as
+        #     ``en-US`` / ``en-UK`` / ``pt-PT``).
+        #   * ``zh-TW`` — Traditional Chinese (Taiwan). Material ships
+        #     ``zh-TW.html`` directly so no shim is needed.
+        - locale: zh-CN
+          name: 中文（简体）
+          build: true
+          nav_translations:
+            Home: 首页
+            Getting Started: 入门
+            Installation: 安装
+            Your first translation: 第一次翻译
+            Features: 功能
+            Translate Text: 翻译文本
+            Translate Document: 翻译文档
+            Generate Subtitle (STT): 生成字幕 (STT)
+            Generate Voice (TTS): 生成语音 (TTS)
+            Video Dubbing: 视频配音
+            Live Translation: 实时翻译
+            Extract Text: 提取文本
+            Glossary: 术语表
+            Setup Guides: 设置指南
+            LLM Providers: LLM 提供商
+            OCR Engines: OCR 引擎
+            ElevenLabs (TTS): ElevenLabs (TTS)
+            Soniox (STT): Soniox (STT)
+            Google Cloud: Google Cloud
+            FFmpeg: FFmpeg
+            LibreOffice: LibreOffice
+            System Audio Capture: 系统音频捕获
+            PortAudio (microphone): PortAudio (麦克风)
+            Command Line: 命令行
+            MCP Server: MCP 服务器
+            Troubleshooting: 故障排除
+            FAQ: 常见问题
+            Developer Reference: 开发者参考
+        - locale: zh-TW
+          name: 中文（繁體）
+          build: true
+          nav_translations:
+            Home: 首頁
+            Getting Started: 入門
+            Installation: 安裝
+            Your first translation: 第一次翻譯
+            Features: 功能
+            Translate Text: 翻譯文字
+            Translate Document: 翻譯文件
+            Generate Subtitle (STT): 產生字幕 (STT)
+            Generate Voice (TTS): 產生語音 (TTS)
+            Video Dubbing: 影片配音
+            Live Translation: 即時翻譯
+            Extract Text: 擷取文字
+            Glossary: 術語表
+            Setup Guides: 設定指南
+            LLM Providers: LLM 提供商
+            OCR Engines: OCR 引擎
+            ElevenLabs (TTS): ElevenLabs (TTS)
+            Soniox (STT): Soniox (STT)
+            Google Cloud: Google Cloud
+            FFmpeg: FFmpeg
+            LibreOffice: LibreOffice
+            System Audio Capture: 系統音訊擷取
+            PortAudio (microphone): PortAudio (麥克風)
+            Command Line: 命令列
+            MCP Server: MCP 伺服器
+            Troubleshooting: 疑難排解
+            FAQ: 常見問題
+            Developer Reference: 開發者參考
+        - locale: ja
+          name: 日本語
+          build: true
+          nav_translations:
+            Home: ホーム
+            Getting Started: はじめに
+            Installation: インストール
+            Your first translation: 初めての翻訳
+            Features: 機能
+            Translate Text: テキスト翻訳
+            Translate Document: ドキュメント翻訳
+            Generate Subtitle (STT): 字幕生成 (STT)
+            Generate Voice (TTS): 音声生成 (TTS)
+            Video Dubbing: 動画吹き替え
+            Live Translation: ライブ翻訳
+            Extract Text: テキスト抽出
+            Glossary: 用語集
+            Setup Guides: セットアップガイド
+            LLM Providers: LLM プロバイダ
+            OCR Engines: OCR エンジン
+            ElevenLabs (TTS): ElevenLabs (TTS)
+            Soniox (STT): Soniox (STT)
+            Google Cloud: Google Cloud
+            FFmpeg: FFmpeg
+            LibreOffice: LibreOffice
+            System Audio Capture: システム音声キャプチャ
+            PortAudio (microphone): PortAudio (マイク)
+            Command Line: コマンドライン
+            MCP Server: MCP サーバー
+            Troubleshooting: トラブルシューティング
+            FAQ: よくある質問
+            Developer Reference: 開発者リファレンス
+        - locale: ko
+          name: 한국어
+          build: true
+          nav_translations:
+            Home: 홈
+            Getting Started: 시작하기
+            Installation: 설치
+            Your first translation: 첫 번역
+            Features: 기능
+            Translate Text: 텍스트 번역
+            Translate Document: 문서 번역
+            Generate Subtitle (STT): 자막 생성 (STT)
+            Generate Voice (TTS): 음성 생성 (TTS)
+            Video Dubbing: 영상 더빙
+            Live Translation: 실시간 번역
+            Extract Text: 텍스트 추출
+            Glossary: 용어집
+            Setup Guides: 설정 가이드
+            LLM Providers: LLM 공급자
+            OCR Engines: OCR 엔진
+            ElevenLabs (TTS): ElevenLabs (TTS)
+            Soniox (STT): Soniox (STT)
+            Google Cloud: Google Cloud
+            FFmpeg: FFmpeg
+            LibreOffice: LibreOffice
+            System Audio Capture: 시스템 오디오 캡처
+            PortAudio (microphone): PortAudio (마이크)
+            Command Line: 명령줄
+            MCP Server: MCP 서버
+            Troubleshooting: 문제 해결
+            FAQ: 자주 묻는 질문
+            Developer Reference: 개발자 참조
+        - locale: vi
+          name: Tiếng Việt
+          build: true
+          nav_translations:
+            Home: Trang chủ
+            Getting Started: Bắt đầu
+            Installation: Cài đặt
+            Your first translation: Lần dịch đầu tiên
+            Features: Tính năng
+            Translate Text: Dịch Văn bản
+            Translate Document: Dịch Tài liệu
+            Generate Subtitle (STT): Tạo Phụ đề (STT)
+            Generate Voice (TTS): Tạo Giọng nói (TTS)
+            Video Dubbing: Lồng tiếng Video
+            Live Translation: Dịch Trực tiếp
+            Extract Text: Trích xuất Văn bản
+            Glossary: Bảng thuật ngữ
+            Setup Guides: Hướng dẫn Cài đặt
+            LLM Providers: Nhà cung cấp LLM
+            OCR Engines: Công cụ OCR
+            ElevenLabs (TTS): ElevenLabs (TTS)
+            Soniox (STT): Soniox (STT)
+            Google Cloud: Google Cloud
+            FFmpeg: FFmpeg
+            LibreOffice: LibreOffice
+            System Audio Capture: Ghi âm Hệ thống
+            PortAudio (microphone): PortAudio (micrô)
+            Command Line: Dòng lệnh
+            MCP Server: Máy chủ MCP
+            Troubleshooting: Khắc phục sự cố
+            FAQ: Câu hỏi thường gặp
+            Developer Reference: Tài liệu cho Lập trình viên
+  # mkdocstrings: auto-generates API reference from Python docstrings.
+  # ``handlers.python`` lets us tune the rendering — see each :::module
+  # block in docs/api/*.md for per-page options.
+  - mkdocstrings:
+      default_handler: python
+      handlers:
+        python:
+          paths: [.]                   # Resolve "src.cli" etc. against repo root.
+          options:
+            docstring_style: google    # Project uses Google-style docstrings.
+            show_source: true
+            show_root_heading: true
+            show_root_full_path: false
+            show_symbol_type_heading: true
+            show_symbol_type_toc: true
+            members_order: source      # Preserve declaration order.
+            heading_level: 2
+            separate_signature: true
+            line_length: 80
+            merge_init_into_class: true
+            docstring_section_style: spacy
+            # Project convention: ``_foo`` denotes module-internal helpers
+            # that still carry meaningful API contracts (the codebase
+            # has ~hundreds of them, all docstring-documented).  Render
+            # them in the reference; only filter out dunders.
+            filters:
+              - "!^__[^_]"     # Skip dunders like __init__ on functions.
+              - "!^_{2}"       # Skip name-mangled __foo / __bar__.
+
+# Material's header language switcher.  The plugin generates
+# ``/vi/`` builds; this surfaces the switcher UI so users can hop
+# between English and Vietnamese.
+extra:
+  alternate:
+    - name: English (US)
+      link: /
+      lang: en-US
+    - name: English (UK)
+      link: /en-UK/
+      lang: en-UK
+    - name: Français
+      link: /fr/
+      lang: fr
+    - name: Español
+      link: /es/
+      lang: es
+    - name: Deutsch
+      link: /de/
+      lang: de
+    - name: Italiano
+      link: /it/
+      lang: it
+    - name: Polski
+      link: /pl/
+      lang: pl
+    - name: Português (Brasil)
+      link: /pt-BR/
+      lang: pt-BR
+    - name: Português (Portugal)
+      link: /pt-PT/
+      lang: pt-PT
+    - name: Русский
+      link: /ru/
+      lang: ru
+    - name: العربية
+      link: /ar/
+      lang: ar
+    - name: हिन्दी
+      link: /hi/
+      lang: hi
+    - name: Bahasa Indonesia
+      link: /id/
+      lang: id
+    - name: ไทย
+      link: /th/
+      lang: th
+    - name: Türkçe
+      link: /tr/
+      lang: tr
+    - name: 中文（简体）
+      link: /zh-CN/
+      lang: zh-CN
+    - name: 中文（繁體）
+      link: /zh-TW/
+      lang: zh-TW
+    - name: 日本語
+      link: /ja/
+      lang: ja
+    - name: 한국어
+      link: /ko/
+      lang: ko
+    - name: Tiếng Việt
+      link: /vi/
+      lang: vi
+
+# Sidebar navigation.  Top level becomes a tab in the header; nested
+# items become a left-pane tree on each page.
+nav:
+  - Home: index.md
+  - Getting Started:
+      - Installation: getting-started/installation.md
+      - Your first translation: getting-started/first-translation.md
+  - Features:
+      - Translate Text: features/translate-text.md
+      - Translate Document: features/translate-document.md
+      - Generate Subtitle (STT): features/generate-subtitle.md
+      - Generate Voice (TTS): features/generate-voice.md
+      - Video Dubbing: features/dubbing.md
+      - Live Translation: features/live-translation.md
+      - Extract Text: features/extract-text.md
+      - Glossary: features/glossary.md
+  - Setup Guides:
+      - LLM Providers: setup/llm-providers.md
+      - OCR Engines: setup/ocr-engines.md
+      - ElevenLabs (TTS): setup/elevenlabs.md
+      - Soniox (STT): setup/soniox.md
+      - Google Cloud: setup/google-cloud.md
+      - FFmpeg: setup/ffmpeg.md
+      - LibreOffice: setup/libreoffice.md
+      - System Audio Capture: setup/system-audio.md
+      - PortAudio (microphone): setup/portaudio.md
+  - Command Line: cli.md
+  - MCP Server: mcp.md
+  - Troubleshooting: troubleshooting.md
+  - FAQ: faq.md
+  - Developer Reference:
+      - Overview: reference/index.md
+      - Constants:
+          - reference/api/constants/index.md
+          - settings: reference/api/constants/settings.md
+          - errors: reference/api/constants/errors.md
+          - languages: reference/api/constants/languages.md
+          - i18n: reference/api/constants/i18n.md
+          - theme: reference/api/constants/theme.md
+      - Core:
+          - reference/api/core/index.md
+          - translator: reference/api/core/translator.md
+          - llm_engine: reference/api/core/llm_engine.md
+          - text_processor: reference/api/core/text_processor.md
+          - pdf_processor: reference/api/core/pdf_processor.md
+          - office_processor: reference/api/core/office_processor.md
+          - ocr_engine: reference/api/core/ocr_engine.md
+          - speech_engine: reference/api/core/speech_engine.md
+          - live_engine: reference/api/core/live_engine.md
+          - checkpoint: reference/api/core/checkpoint.md
+          - database: reference/api/core/database.md
+      - Utils:
+          - reference/api/utils/index.md
+          - config_manager: reference/api/utils/config_manager.md
+          - path_manager: reference/api/utils/path_manager.md
+          - file_utils: reference/api/utils/file_utils.md
+          - text_utils: reference/api/utils/text_utils.md
+          - subtitle_utils: reference/api/utils/subtitle_utils.md
+          - localization_utils: reference/api/utils/localization_utils.md
+          - keyvalue_utils: reference/api/utils/keyvalue_utils.md
+          - font_utils: reference/api/utils/font_utils.md
+          - update_checker: reference/api/utils/update_checker.md
+      - CLI: reference/api/cli.md
+      - MCP Server: reference/api/mcp_server.md

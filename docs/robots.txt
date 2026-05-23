@@ -1,0 +1,9 @@
+User-agent: *
+Allow: /
+
+# The built-in search index is duplicate content — it's a JSON dump
+# of every page rendered as a single HTML file at /search/.  Indexing
+# it pollutes results without adding signal.
+Disallow: /search/
+
+Sitemap: https://cadic2603.github.io/ai-translate/sitemap.xml

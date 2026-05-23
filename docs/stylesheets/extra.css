@@ -1,0 +1,178 @@
+/*
+ * Custom color palette — mirrors the desktop app's theme so the docs site
+ * reads as the same product.  Source of truth for these values is
+ * ``src/constants/theme.py``; if the desktop palette changes, update here.
+ *
+ * ``palette.primary: custom`` and ``palette.accent: custom`` in ``mkdocs.yml``
+ * tell Material for MkDocs to read its primary/accent colors from
+ * ``--md-primary-fg-color`` / ``--md-accent-fg-color`` instead of its
+ * built-in palette (indigo, blue, etc.).
+ */
+
+:root {
+  /* App primary — the same blue used by buttons, links, sidebar selection. */
+  --md-primary-fg-color:        #3e79f7;
+  --md-primary-fg-color--light: #6a97f9;
+  --md-primary-fg-color--dark:  #2a56c0;
+
+  /* Header / nav text on top of the primary background.  White matches
+     how the app renders text on filled primary buttons. */
+  --md-primary-bg-color:        #ffffff;
+  --md-primary-bg-color--light: #ffffffb3;
+
+  /* Accent drives hover states, focus rings, and inline link underlines. */
+  --md-accent-fg-color:         #3568db;
+  --md-accent-fg-color--transparent: #3e79f71a;
+  --md-accent-bg-color:         #ffffff;
+  --md-accent-bg-color--light:  #ffffffb3;
+}
+
+/*
+ * Language switcher flags — match the desktop app's language pickers,
+ * which render a country flag next to each language name.  Material's
+ * built-in alternate dropdown only accepts text in ``extra.alternate``,
+ * so we inject the flag PNG via ``::before`` on each ``<a hreflang>``.
+ *
+ * Flag PNGs are copied from ``src/ui/assets/flags/`` and referenced by
+ * BCP-47 language code so the rule scales with new locales.
+ */
+.md-select__link[hreflang]::before {
+  content: "";
+  display: inline-block;
+  /* Sized to the widest flag aspect we ship (UK ≈ 2:1).  ``contain``
+     scales each PNG to fit without cropping, so the US canton + UK
+     cross + VN star all stay visible.  Letterboxing on shorter flags
+     is invisible because the dropdown row already has padding. */
+  width: 1.4em;
+  height: 0.95em;
+  margin-right: 0.55em;
+  background-size: contain;
+  background-position: center;
+  background-repeat: no-repeat;
+  vertical-align: middle;
+  border-radius: 1px;
+  flex-shrink: 0;
+}
+
+/* The ``i`` flag makes the attribute match case-insensitive — the i18n
+   plugin emits uppercase territory codes (``en-US``, ``en-UK``) but
+   browsers normalise hreflang to lowercase, so matching either form
+   is the safe play. */
+.md-select__link[hreflang="en-us" i]::before {
+  background-image: url("../assets/flags/us.png");
+}
+
+.md-select__link[hreflang="en-uk" i]::before {
+  background-image: url("../assets/flags/uk.png");
+}
+
+.md-select__link[hreflang="vi" i]::before {
+  background-image: url("../assets/flags/vn.png");
+}
+
+.md-select__link[hreflang="zh-cn" i]::before {
+  background-image: url("../assets/flags/cn.png");
+}
+
+.md-select__link[hreflang="zh-tw" i]::before {
+  background-image: url("../assets/flags/tw.png");
+}
+
+.md-select__link[hreflang="ja" i]::before {
+  background-image: url("../assets/flags/jp.png");
+}
+
+.md-select__link[hreflang="ko" i]::before {
+  background-image: url("../assets/flags/kr.png");
+}
+
+.md-select__link[hreflang="fr" i]::before {
+  background-image: url("../assets/flags/fr.png");
+}
+
+.md-select__link[hreflang="es" i]::before {
+  background-image: url("../assets/flags/es.png");
+}
+
+.md-select__link[hreflang="de" i]::before {
+  background-image: url("../assets/flags/de.png");
+}
+
+.md-select__link[hreflang="it" i]::before {
+  background-image: url("../assets/flags/it.png");
+}
+
+.md-select__link[hreflang="pt-br" i]::before {
+  background-image: url("../assets/flags/br.png");
+}
+
+.md-select__link[hreflang="pt-pt" i]::before {
+  background-image: url("../assets/flags/pt.png");
+}
+
+.md-select__link[hreflang="ru" i]::before {
+  background-image: url("../assets/flags/ru.png");
+}
+
+.md-select__link[hreflang="id" i]::before {
+  background-image: url("../assets/flags/id.png");
+}
+
+.md-select__link[hreflang="tr" i]::before {
+  background-image: url("../assets/flags/tr.png");
+}
+
+.md-select__link[hreflang="pl" i]::before {
+  background-image: url("../assets/flags/pl.png");
+}
+
+.md-select__link[hreflang="ar" i]::before {
+  background-image: url("../assets/flags/eg.png");
+}
+
+.md-select__link[hreflang="hi" i]::before {
+  background-image: url("../assets/flags/in.png");
+}
+
+.md-select__link[hreflang="th" i]::before {
+  background-image: url("../assets/flags/th.png");
+}
+
+/*
+ * Hide the search box on locales Lunr.js can't tokenize well.
+ * Material's built-in search has no Vietnamese stemmer (Latin chars
+ * with diacritics get sliced wrong) and only crude CJK tokenization
+ * (no word segmentation for Chinese / Japanese, KR also ineffective
+ * since Lunr falls back to whitespace splitting which most CJK text
+ * lacks entirely).  Until we either translate the content or swap
+ * to a multilingual search backend, hiding the box prevents users
+ * from getting confusingly bad results.  English (US/UK) pages keep
+ * the search box.
+ */
+html[lang="vi"] .md-search,
+html[lang="vi"] [data-md-toggle="search"],
+html[lang="vi"] label[for="__search"],
+html[lang="zh"] .md-search,
+html[lang="zh"] [data-md-toggle="search"],
+html[lang="zh"] label[for="__search"],
+html[lang="ja"] .md-search,
+html[lang="ja"] [data-md-toggle="search"],
+html[lang="ja"] label[for="__search"],
+html[lang="ko"] .md-search,
+html[lang="ko"] [data-md-toggle="search"],
+html[lang="ko"] label[for="__search"] {
+  display: none !important;
+}
+
+/* Dark scheme overrides — the app's dark theme uses a slightly lighter
+   primary ramp because text needs more contrast on the deep navy bg. */
+[data-md-color-scheme="slate"] {
+  --md-primary-fg-color:        #3e79f7;
+  --md-primary-fg-color--light: #6a97f9;
+  --md-primary-fg-color--dark:  #2a56c0;
+  --md-accent-fg-color:         #6a97f9;
+  --md-accent-fg-color--transparent: #6a97f91a;
+
+  /* Match the app's dark sidebar / app background. */
+  --md-default-bg-color:        #1b2531;
+}

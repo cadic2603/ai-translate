@@ -1,0 +1,18 @@
+{#-
+  Re-exports Material's built-in ``zh`` language pack under the BCP-47
+  ``zh-CN`` locale code.  Material ships ``zh.html`` (Simplified
+  Chinese by default) and ``zh-TW.html`` (Traditional Chinese), but
+  no ``zh-CN.html``.  Same shim pattern as ``en-US`` / ``en-UK`` /
+  ``pt-PT``: the i18n plugin force-sets ``theme.language`` from the
+  locale code, so without this file the build crashes looking for
+  ``partials/languages/zh-CN.html``.
+
+  Override the ``language`` key so Material's ``base.html`` emits
+  ``<html lang="zh-CN">`` instead of inheriting the bare ``zh`` —
+  important for SEO (hreflang ↔ lang must agree) and for assistive
+  tech that picks region-specific pronunciations.
+-#}
+{%- import "partials/languages/zh.html" as zh -%}
+{% macro t(key) -%}
+{%- if key == "language" -%}zh-CN{%- else -%}{{ zh.t(key) }}{%- endif -%}
+{%- endmacro %}

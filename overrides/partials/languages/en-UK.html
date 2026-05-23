@@ -1,0 +1,10 @@
+{#-
+  Re-exports Material's built-in ``en`` language pack under the BCP-47
+  ``en-UK`` locale code.  See ``en-US.html`` for rationale; the only
+  difference is the ``language`` key value so ``<html lang="en-UK">``
+  is emitted on UK builds.
+-#}
+{%- import "partials/languages/en.html" as en -%}
+{% macro t(key) -%}
+{%- if key == "language" -%}en-UK{%- else -%}{{ en.t(key) }}{%- endif -%}
+{%- endmacro %}

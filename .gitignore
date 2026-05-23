@@ -1,0 +1,43 @@
+# Python-generated files
+__pycache__/
+*.py[oc]
+build/
+dist/
+wheels/
+*.egg-info
+
+# Logs
+*.log
+app_stderr.log
+app_stdout.log
+run.log
+
+# Virtual environments
+.venv/
+env/
+venv/
+ENV/
+
+# Testing and Linting
+.pytest_cache/
+.ruff_cache/
+.coverage
+htmlcov/
+
+# Local databases
+*.db
+*.sqlite
+
+# Environment variables
+.env
+
+# OS-specific
+.local
+.DS_Store
+Thumbs.db
+
+# Claude Code agent worktrees and tooling state
+.claude/
+
+# MkDocs build output (regenerate with `uv run mkdocs build`)
+site/

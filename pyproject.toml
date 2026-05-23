@@ -1,0 +1,139 @@
+[project]
+name = "ai-translate"
+version = "0.1.0"
+description = "A cross-platform desktop application to translate files into 40+ languages."
+readme = "README.md"
+license = "AGPL-3.0-or-later"
+license-files = ["LICENSE"]
+requires-python = ">=3.12"
+dependencies = [
+    "pyside6>=6.10.2",
+    "python-docx>=1.1.0",
+    "openpyxl>=3.1.0",
+    "python-pptx>=1.0.0",
+    "odfpy>=1.4.1",
+    "lxml>=6.0.2",
+    "keyring>=25.7.0",
+    "pyyaml>=6.0",
+    "pymupdf>=1.24.0",
+    "edge-tts>=7.2.7",
+    "faster-whisper>=1.2.1",
+    "sounddevice>=0.5.5",
+    "websockets>=13.0",
+    "charset-normalizer>=3.4.6",
+    "mcp[cli]>=1.0.0",
+    "langdetect>=1.0.9",
+    "mss>=9.0.1",
+    "openai>=2.0,<3",
+    "google-genai>=1.0,<2",
+    # Windows-only: native WASAPI loopback for system-audio capture.
+    # Lets Windows users skip installing Screen Capture Recorder /
+    # VB-Audio Virtual Cable — soundcard talks to WASAPI directly the
+    # same way Tauri/Rust apps do.  The PEP 508 environment marker
+    # keeps it off Linux/macOS where parec / avfoundation handle the
+    # job (Linux natively, macOS via the user's BlackHole install).
+    "soundcard>=0.4.5; sys_platform == 'win32'",
+    # Offline TTS engine.  Pure-Python wrapper around ONNX Runtime; voice
+    # models are downloaded on demand via Settings → Voice → Piper rather
+    # than bundled (each voice is 25–60 MB).  No GPU required.
+    "piper-tts>=1.2.0",
+]
+
+[project.optional-dependencies]
+easyocr = ["easyocr>=1.7.2"]
+# pywin32 provides win32com/pythoncom for the Win32COM Office backend
+# (Windows + MS Office). All win32com imports are lazy and guarded by
+# try/except, so the app works without it (falls back to UNO or
+# python-docx/openpyxl/python-pptx).
+win32 = ["pywin32>=306"]
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["."]
+
+[dependency-groups]
+dev = [
+    "pytest>=9.0.2",
+    "pytest-cov>=7.1.0",
+    # pytest-forked: per-test fork isolation.  Used to sidestep the
+    # accumulated PySide6 / pytest-qt native-state instability that
+    # crashes single-process serial runs of the full suite around the
+    # 6,000-test mark.  Activate with ``pytest --forked tests/``.
+    "pytest-forked>=1.6.0",
+    "pytest-qt>=4.5.0",
+    "pytest-timeout>=2.3.1",
+    "ruff>=0.15.0",
+    "watchdog[watchmedo]>=6.0.0",
+]
+
+# Documentation site — JSDoc-style API reference auto-generated from
+# Python docstrings.  Build with ``uv run mkdocs build``; preview with
+# ``uv run mkdocs serve``.  Lives in its own group so contributors not
+# touching docs don't pull in the extra dependencies.
+docs = [
+    "mkdocs>=1.6.0",
+    "mkdocs-material>=9.5.0",
+    "mkdocstrings[python]>=0.27.0",
+    # mkdocs-static-i18n: per-page translations via ``<page>.<lang>.md``
+    # suffix.  Renders a language switcher in the Material header and
+    # falls back to the default-language page when a translation is
+    # missing.  English is the default; Vietnamese ``.vi.md`` files
+    # opt in.
+    "mkdocs-static-i18n>=1.2.0",
+]
+
+[tool.pytest.ini_options]
+# Kill any single test that runs longer than 10 seconds.
+# Normal tests complete in < 1 s; an infinite loop (e.g. unmocked UNO
+# hasMoreElements) would hang forever without this.
+timeout = 10
+# Use signal-based timeout (SIGALRM) which can interrupt blocking Qt calls.
+addopts = "--timeout-method=signal"
+
+[tool.ruff]
+# Target version for the project
+target-version = "py312"
+line-length = 88
+
+[tool.ruff.lint]
+# Enable Pyflakes (F), pycodestyle (E, W), isort (I), and others
+select = ["E", "F", "W", "I", "N", "D", "UP", "ANN", "B", "C4", "RET", "SIM", "PTH", "PL"]
+ignore = [
+    "D100", # Missing docstring in public module
+    "D104", # Missing docstring in public package
+    "D203", # one-blank-line-before-class
+    "D213", # multi-line-summary-second-line
+    "ANN204", # Missing return type for __init__
+]
+
+[tool.ruff.lint.per-file-ignores]
+"tests/**" = [
+    "ANN",      # No type annotations required in tests
+    "D102",     # Missing docstring in public method
+    "D103",     # Missing docstring in public function
+    "D301",     # Use r-string for backslash docstrings
+    "E501",     # Line too long (test data strings, assertions)
+    "E741",     # Ambiguous variable name (l, O, I — common in test data)
+    "F811",     # Redefinition of unused name (pytest fixture overrides)
+    "N802",     # Function name should be lowercase (test parametrize IDs)
+    "PLC0415",  # Import not at top level (intentional in test functions)
+    "PLR0913",  # Too many function arguments (test helpers)
+    "PLR2004",  # Magic value used in comparison
+]
+
+[tool.ruff.lint.pydocstyle]
+convention = "google"
+
+[tool.ruff.format]
+quote-style = "double"
+indent-style = "space"
+skip-magic-trailing-comma = false
+line-ending = "auto"
+
+[project.scripts]
+ai-translate = "src.main:main"
+ait = "src.cli:main"
+ait-mcp = "src.mcp_server:main"

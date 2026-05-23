@@ -1,0 +1,16 @@
+{#-
+  Re-exports Material's built-in ``en`` language pack under the BCP-47
+  ``en-US`` locale code.  Material only ships ``en.html``; the
+  mkdocs-static-i18n plugin sets ``theme.language`` from the locale
+  code, so without this shim the build crashes looking for a missing
+  ``partials/languages/en-US.html`` template.
+
+  We override the ``language`` key so Material's ``base.html`` emits
+  ``<html lang="en-US">`` instead of inheriting ``en``.  This matters
+  for SEO (hreflang ↔ lang must agree) and for assistive tech that
+  picks region-specific pronunciations.
+-#}
+{%- import "partials/languages/en.html" as en -%}
+{% macro t(key) -%}
+{%- if key == "language" -%}en-US{%- else -%}{{ en.t(key) }}{%- endif -%}
+{%- endmacro %}

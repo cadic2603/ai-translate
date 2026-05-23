@@ -1,0 +1,18 @@
+{#-
+  Re-exports Material's built-in ``pt`` language pack under the BCP-47
+  ``pt-PT`` locale code.  Material ships ``pt.html`` (European
+  Portuguese by default) and a separate ``pt-BR.html`` for Brazilian
+  Portuguese, but no ``pt-PT.html``.  Same shim pattern as ``en-US``
+  / ``en-UK``: the i18n plugin force-sets ``theme.language`` from the
+  locale code, so without this file the build crashes looking for
+  ``partials/languages/pt-PT.html``.
+
+  Override the ``language`` key so Material's ``base.html`` emits
+  ``<html lang="pt-PT">`` instead of inheriting ``pt`` — important
+  for SEO (hreflang ↔ lang must agree) and for assistive tech that
+  picks region-specific pronunciations.
+-#}
+{%- import "partials/languages/pt.html" as pt -%}
+{% macro t(key) -%}
+{%- if key == "language" -%}pt-PT{%- else -%}{{ pt.t(key) }}{%- endif -%}
+{%- endmacro %}

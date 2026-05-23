@@ -1,0 +1,24 @@
+{#-
+  Override of Material's ``partials/source.html`` — only difference vs
+  upstream is ``target="_blank" rel="noopener"`` on the repo link so
+  clicking the GitHub icon in the header opens the repo in a new tab
+  instead of replacing the docs page.  ``rel="noopener"`` is a security
+  hardening: prevents the opened tab from accessing ``window.opener``.
+  Keep the rest of the markup in lockstep with upstream when bumping
+  Material — this file shadows it whole, so changes there won't reach
+  us automatically.
+-#}
+<a href="{{ config.repo_url }}"
+   title="{{ lang.t('source') }}"
+   class="md-source"
+   data-md-component="source"
+   target="_blank"
+   rel="noopener">
+  <div class="md-source__icon md-icon">
+    {% set icon = config.theme.icon.repo or "fontawesome/brands/git-alt" %}
+    {% include ".icons/" ~ icon ~ ".svg" %}
+  </div>
+  <div class="md-source__repository">
+    {{ config.repo_name }}
+  </div>
+</a>

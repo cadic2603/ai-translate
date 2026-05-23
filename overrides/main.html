@@ -1,0 +1,262 @@
+{#-
+  AI Translate docs — site-wide template extension.
+
+  We extend Material's ``base.html`` instead of shadowing it so theme
+  upgrades keep flowing in.  Everything we add lives in the
+  ``extrahead`` block (rendered just before ``</head>``).
+
+  Five SEO concerns handled here, in order of impact:
+    1. ``robots: noindex`` on i18n fallback pages
+    2. JSON-LD structured data (WebSite + SoftwareApplication + TechArticle)
+    3. Open Graph tags (rich previews when shared on Slack / X / Discord)
+    4. Twitter Card tags
+    5. ``x-default`` hreflang + Google Fonts CSS preconnect (polish)
+-#}
+{% extends "base.html" %}
+
+{#-
+  --- 0. hreflang link tags (override base.html's ``site_meta`` block) ---
+
+  Material's stock ``base.html`` emits ``<link rel="alternate"
+  href="{{ alt.link | url }}" hreflang="{{ alt.lang }}">`` inside
+  ``block site_meta``.  Combined with the bug in mkdocs-static-i18n's
+  ``on_page_context`` override (it sets ``alt.link`` to a bare relative
+  URL like ``fr/`` that the ``| url`` filter then renders as ``/fr/``
+  on the homepage), the deployed site emits SEO hreflang tags pointing
+  at ``https://cadic2603.github.io/fr/`` — a 404, since the actual base
+  is ``/ai-translate/``.
+
+  Override the entire block to (a) keep every other tag the stock
+  block produces (canonical, prev/next, RSS, favicon, generator) and
+  (b) build absolute hreflang URLs from ``config.site_url`` directly,
+  side-stepping the buggy filter pipeline.  Mirrors the rest of the
+  stock template verbatim so theme upgrades that don't touch
+  ``site_meta`` flow through unchanged.
+-#}
+{% block site_meta %}
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  {% if page and page.meta and page.meta.description %}
+    <meta name="description" content="{{ page.meta.description }}">
+  {% elif config.site_description %}
+    <meta name="description" content="{{ config.site_description }}">
+  {% endif %}
+  {% if page and page.meta and page.meta.author %}
+    <meta name="author" content="{{ page.meta.author }}">
+  {% elif config.site_author %}
+    <meta name="author" content="{{ config.site_author }}">
+  {% endif %}
+  {% if page and page.canonical_url %}
+    <meta property="og:locale" content="{{ lang.t('locale') | replace('_', '-') }}">
+    <link rel="canonical" href="{{ page.canonical_url }}">
+  {% endif %}
+  {% if page and page.previous_page %}
+    <link rel="prev" href="{{ page.previous_page.url | url }}">
+  {% endif %}
+  {% if page and page.next_page %}
+    <link rel="next" href="{{ page.next_page.url | url }}">
+  {% endif %}
+  {% if config.extra.alternate is iterable %}
+    {% for alt in config.extra.alternate %}
+      {#- Build absolute URL: config.site_url already has trailing slash;
+          alt.link is page-relative like "fr/" or "fr/getting-started/installation/".
+          Strip leading slashes from alt.link defensively, then ensure trailing slash. -#}
+      {%- set rel = alt.link | trim('/') -%}
+      {%- if rel -%}
+        {%- set abs_url = config.site_url ~ rel ~ '/' -%}
+      {%- else -%}
+        {%- set abs_url = config.site_url -%}
+      {%- endif %}
+      <link rel="alternate" href="{{ abs_url }}" hreflang="{{ alt.lang | d(lang.t('language')) }}">
+    {% endfor %}
+  {% endif %}
+  {% if "rss" in config.plugins %}
+    <link rel="alternate" type="application/rss+xml" title="{{ lang.t('rss.created') }}" href="{{ 'feed_rss_created.xml' | url }}">
+    <link rel="alternate" type="application/rss+xml" title="{{ lang.t('rss.updated') }}" href="{{ 'feed_rss_updated.xml' | url }}">
+  {% endif %}
+  <link rel="icon" href="{{ config.theme.favicon | url }}">
+  <meta name="generator" content="mkdocs-{{ mkdocs_version }}, mkdocs-material-9.7.6">
+{% endblock %}
+
+{% block extrahead %}
+  {#-
+    --- 1. Noindex on fallback (untranslated) pages -----------------
+
+    The i18n plugin builds ``/vi/cli/`` from ``cli.md`` when no
+    ``cli.vi.md`` exists.  That page emits ``<html lang="vi">`` but
+    the body is English — Google sees the language mismatch and
+    penalises the URL.  Tag those fallbacks ``noindex, follow`` so
+    crawlers ignore them but still walk their internal links.  When
+    a Vietnamese (or UK) translation lands later, the suffix-matching
+    file gets indexed automatically — no override removal needed.
+  -#}
+  {#- Material renders some auxiliary templates (search index, 404)
+      without a ``page`` object — guard every page-dependent block. -#}
+  {%- set lang = config.theme.language -%}
+  {%- if page and page.file -%}
+    {%- set src = page.file.src_path | replace('\\', '/') -%}
+    {%- if lang == 'vi' and not src.endswith('.vi.md') -%}
+      <meta name="robots" content="noindex,follow">
+    {%- elif lang == 'en-UK' and not src.endswith('.en-uk.md') -%}
+      <meta name="robots" content="noindex,follow">
+    {%- endif -%}
+  {%- endif %}
+
+  {#-
+    --- 2. JSON-LD structured data ----------------------------------
+
+    Two graphs:
+      * Homepage carries the sitewide ``WebSite`` + ``SoftwareApplication``
+        nodes — gives Google enough context for a knowledge panel and
+        for the search box to surface in SERPs.
+      * Inner pages carry a ``TechArticle`` node bound back to the
+        sitewide ``WebSite`` via ``isPartOf`` so they inherit the
+        site identity without duplicating the whole graph.
+    The ``inLanguage`` field is per-build so each locale's pages
+    declare their own language to the crawler.
+  -#}
+  {%- if page -%}
+    {%- set page_title = page.meta.title or page.title or config.site_name -%}
+    {%- set page_desc = page.meta.description or config.site_description -%}
+  {%- else -%}
+    {%- set page_title = config.site_name -%}
+    {%- set page_desc = config.site_description -%}
+  {%- endif -%}
+
+  {#- Detect localized home pages so the JSON-LD graph + OG type +
+      OG title all agree.  ``page.is_homepage`` only matches the
+      default-locale root, so we also recognise top-level
+      ``index[.<locale>].md`` source files as homepages. -#}
+  {%- set is_home = false -%}
+  {%- if page and page.is_homepage -%}
+    {%- set is_home = true -%}
+  {%- elif page and page.file -%}
+    {%- set src_norm = page.file.src_path | replace('\\', '/') -%}
+    {%- if src_norm == 'index.md' or (src_norm.startswith('index.') and src_norm.endswith('.md') and '/' not in src_norm) -%}
+      {%- set is_home = true -%}
+    {%- endif -%}
+  {%- endif %}
+
+  {% if is_home %}
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@graph": [
+      {
+        "@type": "WebSite",
+        "@id": "{{ config.site_url }}#website",
+        "url": "{{ config.site_url }}",
+        "name": {{ config.site_name | tojson }},
+        "description": {{ config.site_description | tojson }},
+        "inLanguage": "{{ lang }}",
+        "publisher": {
+          "@type": "Organization",
+          "name": {{ config.site_name | tojson }},
+          "url": "{{ config.site_url }}"
+        },
+        "potentialAction": {
+          "@type": "SearchAction",
+          "target": {
+            "@type": "EntryPoint",
+            "urlTemplate": "{{ config.site_url }}?q={search_term_string}"
+          },
+          "query-input": "required name=search_term_string"
+        }
+      },
+      {
+        "@type": "SoftwareApplication",
+        "@id": "{{ config.site_url }}#software",
+        "name": "AI Translate",
+        "description": {{ config.site_description | tojson }},
+        "url": "{{ config.site_url }}",
+        "applicationCategory": "UtilityApplication",
+        "operatingSystem": "Windows, macOS, Linux",
+        "softwareVersion": "1.0",
+        "offers": {
+          "@type": "Offer",
+          "price": "0",
+          "priceCurrency": "USD"
+        },
+        "author": {
+          "@type": "Organization",
+          "name": "cadic2603",
+          "url": "{{ config.repo_url }}"
+        }
+      }
+    ]
+  }
+  </script>
+  {% elif page %}
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "TechArticle",
+    "headline": {{ page_title | tojson }},
+    "description": {{ page_desc | tojson }},
+    "url": "{{ page.canonical_url }}",
+    "inLanguage": "{{ lang }}",
+    "isPartOf": {
+      "@type": "WebSite",
+      "@id": "{{ config.site_url }}#website"
+    }
+  }
+  </script>
+  {% endif %}
+
+  {#-
+    --- 3 + 4. Open Graph + Twitter Card ----------------------------
+
+    Without these, sharing the docs in Slack / X / Discord falls back
+    to a generic preview (URL + truncated body text, no image).  The
+    image points at the app SVG icon — same blue badge as the desktop
+    app — so previews are recognisably "AI Translate" branded.
+
+    ``og:locale`` uses underscore form (``en_US``) per the OG spec;
+    we also emit ``og:locale:alternate`` for each other locale so
+    Facebook / LinkedIn can surface localised previews.
+  -#}
+  {#- Use the brand name as the OG title for any locale's home page,
+      not the per-locale ``Home`` / ``Trang chủ`` Material substitutes
+      for the index page.  ``is_home`` was computed above. -#}
+  {%- if is_home -%}
+    {%- set og_title = config.site_name -%}
+  {%- elif page -%}
+    {%- set og_title = page_title ~ ' — ' ~ config.site_name -%}
+  {%- else -%}
+    {%- set og_title = config.site_name -%}
+  {%- endif %}
+  <meta property="og:type" content="{% if is_home %}website{% else %}article{% endif %}">
+  <meta property="og:title" content="{{ og_title }}">
+  <meta property="og:description" content="{{ page_desc }}">
+  <meta property="og:url" content="{{ page.canonical_url if page else config.site_url }}">
+  <meta property="og:site_name" content="{{ config.site_name }}">
+  <meta property="og:image" content="{{ config.site_url }}assets/logo.svg">
+  <meta property="og:image:alt" content="AI Translate logo">
+  <meta property="og:locale" content="{{ lang | replace('-', '_') }}">
+  {% if config.extra.alternate is iterable %}
+    {% for alt in config.extra.alternate %}
+      {% if alt.lang != lang %}
+  <meta property="og:locale:alternate" content="{{ alt.lang | replace('-', '_') }}">
+      {% endif %}
+    {% endfor %}
+  {% endif %}
+
+  <meta name="twitter:card" content="summary">
+  <meta name="twitter:title" content="{{ og_title }}">
+  <meta name="twitter:description" content="{{ page_desc }}">
+  <meta name="twitter:image" content="{{ config.site_url }}assets/logo.svg">
+  <meta name="twitter:image:alt" content="AI Translate logo">
+
+  {#-
+    --- 5. ``x-default`` hreflang + Google Fonts preconnect ---------
+
+    ``x-default`` tells Google "if no listed locale matches the
+    user's, serve this URL".  Our default is en-US at ``/``.
+
+    Material already preconnects to ``fonts.gstatic.com`` (font
+    files); adding ``fonts.googleapis.com`` (the CSS endpoint) shaves
+    ~50ms off first paint on cold connections.
+  -#}
+  <link rel="alternate" href="{{ config.site_url }}" hreflang="x-default">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+{% endblock %}
